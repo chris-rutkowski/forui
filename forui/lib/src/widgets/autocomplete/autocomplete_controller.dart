@@ -183,8 +183,13 @@ class _Lifted<T> extends FAutocompleteControl<T> with _$_LiftedMixin<T> {
   ) => _ProxyController(value, onChange, displayStringForOption: displayStringForOption);
 
   @override
-  void _updateController(FAutocompleteController<T> controller, FutureOr<Iterable<T>> Function(String) filter) {
-    (controller as _ProxyController)
+  void _updateController(
+    FAutocompleteController<T> controller,
+    FutureOr<Iterable<T>> Function(String) filter,
+    String Function(T option) displayStringForOption,
+  ) {
+    (controller as _ProxyController<T>)
+      ..displayStringForOption = displayStringForOption
       ..update(value, onChange)
       ..loadSuggestions(filter(controller.text));
   }
