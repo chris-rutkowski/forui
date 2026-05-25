@@ -36,6 +36,29 @@ class FAutocompleteController extends FTypeaheadController {
       );
 }
 
+/// Controls the visibility of an [FAutocomplete]'s suggestions.
+class FAutocompleteSuggestionsController extends FChangeNotifier {
+  bool _enabled = true;
+
+  /// Creates a [FAutocompleteSuggestionsController].
+  FAutocompleteSuggestionsController({bool enabled = true}) {
+    _enabled = enabled;
+  }
+
+  /// True if the autocomplete suggestions popover can be shown.
+  bool get enabled => _enabled;
+
+  /// Disables the autocomplete suggestions popover.
+  ///
+  /// This is one-way. Create a new controller to allow suggestions again.
+  void disable() {
+    if (_enabled) {
+      _enabled = false;
+      notifyListeners();
+    }
+  }
+}
+
 class _ProxyController extends FAutocompleteController {
   TextEditingValue? _unsynced;
   ValueChanged<TextEditingValue> _onChange;

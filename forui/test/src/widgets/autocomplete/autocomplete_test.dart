@@ -27,6 +27,13 @@ const fruits = [
   'Watermelon',
 ];
 
+class _Fruit {
+  final int id;
+  final String name;
+
+  const _Fruit(this.id, this.name);
+}
+
 void main() {
   const key = ValueKey('autocomplete');
 
@@ -658,6 +665,155 @@ void main() {
       expect(controller.text, 'app');
       expect(changes.last, 'app');
       expect(changes.where((c) => c == 'app').length, 2);
+    });
+  });
+
+  group('onSelect', () {
+    testWidgets('called with the selected item when suggestion is tapped', (tester) async {
+      String? selected;
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete.text(
+            key: key,
+            control: .managed(controller: controller),
+            items: fruits,
+            onSelect: (value) => selected = value,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byKey(key), 'app');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Apple'));
+      await tester.pumpAndSettle();
+
+      expect(selected, 'Apple');
+    });
+
+    testWidgets('called with the selected generic item', (tester) async {
+      const apple = _Fruit(1, 'Apple');
+      const banana = _Fruit(2, 'Banana');
+      _Fruit? selected;
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete<_Fruit>(
+            key: key,
+            control: .managed(controller: controller),
+            items: const {'Apple': apple, 'Banana': banana},
+            onSelect: (value) => selected = value,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byKey(key), 'app');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Apple'));
+      await tester.pumpAndSettle();
+
+      expect(selected, apple);
+    });
+
+    testWidgets('not called when arrow-key navigation previews a suggestion', (tester) async {
+      String? selected;
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete.text(
+            key: key,
+            control: .managed(controller: controller),
+            items: fruits,
+            onSelect: (value) => selected = value,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byKey(key), 'app');
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(.arrowDown);
+      await tester.pumpAndSettle();
+
+      expect(controller.text, 'Apple');
+      expect(selected, null);
+    });
+
+    testWidgets('called when tab completes inline suggestion', (tester) async {
+      String? selected;
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete.text(
+            key: key,
+            control: .managed(controller: controller),
+            items: fruits,
+            onSelect: (value) => selected = value,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byKey(key), 'app');
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(.tab);
+      await tester.pumpAndSettle();
+
+      expect(selected, 'Apple');
+    });
+  });
+
+  group('suggestionsController', () {
+    testWidgets('disable hides the popover', (tester) async {
+      final suggestionsController = autoDispose(FAutocompleteSuggestionsController());
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete.text(
+            key: key,
+            popoverControl: .managed(controller: popoverController),
+            suggestionsController: suggestionsController,
+            items: fruits,
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(key));
+      await tester.pumpAndSettle();
+      expect(popoverController.status.isForwardOrCompleted, true);
+
+      suggestionsController.disable();
+      await tester.pumpAndSettle();
+
+      expect(popoverController.status.isForwardOrCompleted, false);
+    });
+
+    testWidgets('disable prevents the popover from being shown again', (tester) async {
+      final suggestionsController = autoDispose(FAutocompleteSuggestionsController());
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete.text(
+            key: key,
+            popoverControl: .managed(controller: popoverController),
+            suggestionsController: suggestionsController,
+            items: fruits,
+          ),
+        ),
+      );
+
+      suggestionsController.disable();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(key));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(key), 'app');
+      await tester.pumpAndSettle();
+
+      expect(popoverController.status.isForwardOrCompleted, false);
+      expect(find.text('Apple'), findsNothing);
     });
   });
 

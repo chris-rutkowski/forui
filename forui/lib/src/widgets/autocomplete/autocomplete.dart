@@ -75,6 +75,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     required List<String> items,
     FAutocompleteControl control = const .managed(),
     FPopoverControl popoverControl = const .managed(),
+    FAutocompleteSuggestionsController? suggestionsController,
     FTextFieldSizeVariant size = .md,
     FAutocompleteStyleDelta style = const .context(),
     Widget? label,
@@ -131,6 +132,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     FFieldIconBuilder<FAutocompleteStyle>? suffixBuilder,
     bool Function(TextEditingValue value) clearable = FTextField.defaultClearable,
     FAutocompletePopoverBuilder popoverBuilder = FPopover.defaultPopoverBuilder,
+    ValueChanged<String>? onSelect,
     FormFieldSetter<String>? onSaved,
     VoidCallback? onReset,
     FormFieldValidator<String>? validator,
@@ -173,6 +175,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     contentBuilder: contentBuilder ?? (context, query, values) => [for (final value in values) .item(value: value)],
     control: control,
     popoverControl: popoverControl,
+    suggestionsController: suggestionsController,
     size: size,
     style: style,
     label: label,
@@ -229,6 +232,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     suffixBuilder: suffixBuilder,
     clearable: clearable,
     popoverBuilder: popoverBuilder,
+    onSelect: onSelect,
     onSaved: onSaved,
     onReset: onReset,
     validator: validator,
@@ -267,6 +271,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     required FAutocompleteContentBuilder<String> contentBuilder,
     FAutocompleteControl control = const .managed(),
     FPopoverControl popoverControl = const .managed(),
+    FAutocompleteSuggestionsController? suggestionsController,
     FTextFieldSizeVariant size = .md,
     FAutocompleteStyleDelta style = const .context(),
     Widget? label,
@@ -323,6 +328,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     FFieldIconBuilder<FAutocompleteStyle>? suffixBuilder,
     bool Function(TextEditingValue value) clearable = FTextField.defaultClearable,
     FAutocompletePopoverBuilder popoverBuilder = FPopover.defaultPopoverBuilder,
+    ValueChanged<String>? onSelect,
     FormFieldSetter<String>? onSaved,
     VoidCallback? onReset,
     FormFieldValidator<String>? validator,
@@ -363,6 +369,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     contentBuilder: contentBuilder,
     control: control,
     popoverControl: popoverControl,
+    suggestionsController: suggestionsController,
     size: size,
     style: style,
     label: label,
@@ -419,6 +426,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     suffixBuilder: suffixBuilder,
     clearable: clearable,
     popoverBuilder: popoverBuilder,
+    onSelect: onSelect,
     onSaved: onSaved,
     onReset: onReset,
     validator: validator,
@@ -459,6 +467,12 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
   ///
   /// Defaults to [FPopoverControl.managed].
   final FPopoverControl popoverControl;
+
+  /// Controls whether suggestions can be shown.
+  ///
+  /// Calling [FAutocompleteSuggestionsController.disable] closes the suggestions popover if shown and prevents it from
+  /// being shown again.
+  final FAutocompleteSuggestionsController? suggestionsController;
 
   /// {@macro forui.text_field.size}
   final FTextFieldSizeVariant size;
@@ -647,6 +661,9 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
   /// Defaults to returning the content as-is.
   final FAutocompletePopoverBuilder popoverBuilder;
 
+  /// Called when a suggestion is selected.
+  final ValueChanged<T>? onSelect;
+
   @override
   final FormFieldSetter<T>? onSaved;
 
@@ -776,6 +793,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     T? Function(String? text)? parse,
     FAutocompleteControl control = const .managed(),
     FPopoverControl popoverControl = const .managed(),
+    FAutocompleteSuggestionsController? suggestionsController,
     FTextFieldSizeVariant size = .md,
     FAutocompleteStyleDelta style = const .context(),
     Widget? label,
@@ -832,6 +850,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     FFieldIconBuilder<FAutocompleteStyle>? suffixBuilder,
     bool Function(TextEditingValue value) clearable = FTextField.defaultClearable,
     FAutocompletePopoverBuilder popoverBuilder = FPopover.defaultPopoverBuilder,
+    ValueChanged<T>? onSelect,
     FormFieldSetter<T>? onSaved,
     VoidCallback? onReset,
     FormFieldValidator<T>? validator,
@@ -879,6 +898,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
              contentBuilder ?? (context, query, values) => [for (final value in values) .item(value: value)],
          control: control,
          popoverControl: popoverControl,
+         suggestionsController: suggestionsController,
          size: size,
          style: style,
          label: label,
@@ -935,6 +955,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
          suffixBuilder: suffixBuilder,
          clearable: clearable,
          popoverBuilder: popoverBuilder,
+         onSelect: onSelect,
          onSaved: onSaved,
          onReset: onReset,
          validator: validator,
@@ -978,6 +999,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     required this.contentBuilder,
     this.control = const .managed(),
     this.popoverControl = const .managed(),
+    this.suggestionsController,
     this.size = .md,
     this.style = const .context(),
     this.label,
@@ -1034,6 +1056,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     this.suffixBuilder,
     this.clearable = FTextField.defaultClearable,
     this.popoverBuilder = FPopover.defaultPopoverBuilder,
+    this.onSelect,
     this.onSaved,
     this.onReset,
     this.validator,
@@ -1074,6 +1097,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
     properties
       ..add(DiagnosticsProperty('control', control))
       ..add(DiagnosticsProperty('popoverControl', popoverControl))
+      ..add(DiagnosticsProperty('suggestionsController', suggestionsController))
       ..add(DiagnosticsProperty('size', size))
       ..add(DiagnosticsProperty('style', style))
       ..add(StringProperty('hint', hint))
@@ -1137,6 +1161,7 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
       ..add(ObjectFlagProperty.has('suffixBuilder', suffixBuilder))
       ..add(ObjectFlagProperty.has('clearable', clearable))
       ..add(ObjectFlagProperty.has('popoverBuilder', popoverBuilder))
+      ..add(ObjectFlagProperty.has('onSelect', onSelect))
       ..add(ObjectFlagProperty.has('onSaved', onSaved))
       ..add(ObjectFlagProperty.has('onReset', onReset))
       ..add(ObjectFlagProperty.has('validator', validator))
@@ -1176,12 +1201,14 @@ class FAutocomplete<T> extends StatefulWidget with FFormFieldProperties<T> {
 class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
   late FAutocompleteController _controller;
   late FPopoverController _popoverController;
+  late FAutocompleteSuggestionsController _suggestionsController;
   late FutureOr<Iterable<T>> _data;
   late FocusNode _fieldFocus;
   late FocusScopeNode _popoverFocus;
   bool _tapFocus = false;
   bool _mutating = false;
   bool _itemTap = false;
+  bool _ownsSuggestionsController = false;
   String? _previous;
   int _monotonic = 0;
 
@@ -1195,6 +1222,9 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
     _fieldFocus.addListener(_focus);
     _popoverFocus = FocusScopeNode(debugLabel: 'FAutocomplete popover');
     _popoverController = widget.popoverControl.create(_handleOnPopoverChange, this);
+    _ownsSuggestionsController = widget.suggestionsController == null;
+    _suggestionsController = widget.suggestionsController ?? FAutocompleteSuggestionsController();
+    _suggestionsController.addListener(_handleOnSuggestionsChange);
     _controller = widget.control.create(_update);
     _controller.loadSuggestions(_format(_data = widget.filter(_controller.text))).ignore();
   }
@@ -1215,6 +1245,18 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
       _controller = controller;
       _controller.loadSuggestions(_format(_data = widget.filter(_controller.text))).ignore();
     }
+
+    if (widget.suggestionsController != old.suggestionsController) {
+      _suggestionsController.removeListener(_handleOnSuggestionsChange);
+      if (_ownsSuggestionsController) {
+        _suggestionsController.dispose();
+      }
+      _ownsSuggestionsController = widget.suggestionsController == null;
+      _suggestionsController = widget.suggestionsController ?? FAutocompleteSuggestionsController();
+      _suggestionsController.addListener(_handleOnSuggestionsChange);
+      _handleOnSuggestionsChange();
+    }
+
     _popoverController = widget.popoverControl
         .update(old.popoverControl, _popoverController, _handleOnPopoverChange, this)
         .$1;
@@ -1229,6 +1271,10 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
     }
 
     widget.popoverControl.dispose(_popoverController, _handleOnPopoverChange);
+    _suggestionsController.removeListener(_handleOnSuggestionsChange);
+    if (_ownsSuggestionsController) {
+      _suggestionsController.dispose();
+    }
     widget.control.dispose(_controller, _update);
     super.dispose();
   }
@@ -1281,6 +1327,12 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
   }
 
   void _toggle() {
+    if (!_suggestionsController.enabled) {
+      _monotonic++;
+      _popoverController.hide();
+      return;
+    }
+
     final token = ++_monotonic;
     final data = _data;
 
@@ -1308,9 +1360,16 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
       return;
     }
 
-    if (show) {
+    if (show && _suggestionsController.enabled) {
       _popoverController.show();
     } else {
+      _popoverController.hide();
+    }
+  }
+
+  void _handleOnSuggestionsChange() {
+    if (!_suggestionsController.enabled) {
+      _monotonic++;
       _popoverController.hide();
     }
   }
@@ -1465,6 +1524,7 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
                   _mutating = true;
                   _controller.text = widget.format(value);
                   _mutating = false;
+                  widget.onSelect?.call(value);
                 },
                 onFocus: (value) {
                   _restore ??= _controller.text;
@@ -1513,12 +1573,16 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
   }
 
   void _complete() {
+    final value = widget.parse(_controller.current?.replacement);
     if (widget.autoHide) {
       _popoverController.hide();
     }
     _mutating = true;
     _controller.complete();
     _mutating = false;
+    if (value != null) {
+      widget.onSelect?.call(value);
+    }
   }
 }
 
