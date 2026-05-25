@@ -815,6 +815,35 @@ void main() {
       expect(popoverController.status.isForwardOrCompleted, false);
       expect(find.text('Apple'), findsNothing);
     });
+
+    testWidgets('disable prevents inline typeahead completion', (tester) async {
+      final suggestionsController = autoDispose(FAutocompleteSuggestionsController());
+
+      await tester.pumpWidget(
+        TestScaffold.app(
+          child: FAutocomplete.text(
+            key: key,
+            control: .managed(controller: controller),
+            suggestionsController: suggestionsController,
+            items: fruits,
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byKey(key), 'App');
+      await tester.pumpAndSettle();
+      expect(controller.current, isNotNull);
+
+      suggestionsController.disable();
+      await tester.pumpAndSettle();
+
+      expect(controller.current, isNull);
+
+      await tester.enterText(find.byKey(key), 'Ban');
+      await tester.pumpAndSettle();
+
+      expect(controller.current, isNull);
+    });
   });
 
   testWidgets('enter closes popover', (tester) async {

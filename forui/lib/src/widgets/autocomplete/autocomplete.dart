@@ -1226,7 +1226,7 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
     _suggestionsController = widget.suggestionsController ?? FAutocompleteSuggestionsController();
     _suggestionsController.addListener(_handleOnSuggestionsChange);
     _controller = widget.control.create(_update);
-    _controller.loadSuggestions(_format(_data = widget.filter(_controller.text))).ignore();
+    _loadSuggestions();
   }
 
   @override
@@ -1243,7 +1243,7 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
     final (controller, updated) = widget.control.update(old.control, _controller, _update);
     if (updated) {
       _controller = controller;
-      _controller.loadSuggestions(_format(_data = widget.filter(_controller.text))).ignore();
+      _loadSuggestions();
     }
 
     if (widget.suggestionsController != old.suggestionsController) {
@@ -1290,9 +1290,7 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
     }
 
     if (!_mutating) {
-      setState(() {
-        _controller.loadSuggestions(_format(_data = widget.filter(_controller.text))).ignore();
-      });
+      setState(_loadSuggestions);
 
       // Skip if text changed programmatically while the field isn't focused.
       if (_fieldFocus.hasFocus) {
@@ -1305,6 +1303,15 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
     final Iterable<T> values => [for (final v in values) widget.format(v)],
     final Future<Iterable<T>> future => future.then((values) => [for (final v in values) widget.format(v)]),
   };
+
+  void _loadSuggestions() {
+    if (_suggestionsController.enabled) {
+      _controller.loadSuggestions(_format(_data = widget.filter(_controller.text))).ignore();
+    } else {
+      _data = const [];
+      _controller.loadSuggestions(const <String>[]).ignore();
+    }
+  }
 
   void _focus() {
     // Check if the field gained focus because of the user tapping/tabbing into the autocomplete while completions are
@@ -1370,6 +1377,7 @@ class _State<T> extends State<FAutocomplete<T>> with TickerProviderStateMixin {
   void _handleOnSuggestionsChange() {
     if (!_suggestionsController.enabled) {
       _monotonic++;
+      _controller.loadSuggestions(const <String>[]).ignore();
       _popoverController.hide();
     }
   }
